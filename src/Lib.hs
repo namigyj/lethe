@@ -2,7 +2,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Lib
-    where
+  {--( computeUids
+  , insertAfterCategory
+  , modCategoryName
+  , modCategory
+  , deleteItem
+  , modItem
+  , ResultSet
+  , Category
+  , Item )--}where
 
 import Data.Aeson
 import Data.Hashable (hash)
@@ -52,7 +60,26 @@ computeUids (ResultSet cats') =
     where computeuid (Item _ title' u ts) = Item (hash' title') title' u ts
             where hash' = show . (flip mod) 0xfffff . hash
 
--- insertCategory :: String -> Catogory -> [Category]
--- modCategory :: String -> [Category] -> [Category]
--- deleteItem :: String -> [Item] -> [Item]
--- modItem :: String -> Item -> [Item]
+insertAfterCategory :: String -> Category -> [Category] -> [Category]
+insertAfterCategory _ _ [] = []
+insertAfterCategory cname cat (c@Category{name=n}:cs)
+  | n == cname = c:cat:cs
+  | otherwise = c:insertAfterCategory cname cat cs
+
+modCategoryName :: String -> Category -> [Category] -> [Category]
+modCategoryName cname cat =
+  map (\c@Category{name=n} -> if n == cname
+                             then cat
+                             else c)
+
+modCategory :: Category -> [Category] -> [Category]
+modCategory c@Category{name=n} = modCategoryName n c
+
+deleteItem :: String -> [Item] -> [Item]
+deleteItem uid' = filter (\Item{uid=u} -> u /= uid')
+
+modItem :: String -> Item -> [Item] -> [Item]
+modItem uid' it =
+  map (\i@Item{uid=u} -> if u == uid'
+                        then it
+                        else i)
