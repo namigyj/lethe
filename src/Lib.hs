@@ -72,13 +72,13 @@ insertCategory cname cat = cmap iter
                                  | otherwise  = c:iter cs
 
 -- Modify the category with the given name
-modCategoryName :: String -> Category -> ResultSet -> ResultSet
-modCategoryName cname new  = cmap $ map (\old@Category{name=n} -> if
+modCategory :: String -> Category -> ResultSet -> ResultSet
+modCategory cname new  = cmap $ map (\old@Category{name=n} -> if
                                             | n == cname -> replaceCat old new
                                             | otherwise -> old)
 -- Modify the category with the same name
-modCategory :: Category -> ResultSet -> ResultSet
-modCategory c@Category{name=n} = modCategoryName n c
+modCategoryNN :: Category -> ResultSet -> ResultSet
+modCategoryNN c@Category{name=n} = modCategory n c
 
 
 -- append a new Item to the given name's Category items
