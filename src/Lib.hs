@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Lib
   {--( computeUids
@@ -14,7 +15,8 @@ module Lib
 
 import Data.Aeson
 import Data.Hashable (hash)
-import qualified Data.Text as T
+import Numeric (showHex)
+import Data.Text()
 
 import GHC.Generics -- for the default ToJSON
 
@@ -27,59 +29,104 @@ data Category = Category { name :: String
                          , items :: [Item]
                          } deriving (Generic, Show)
 
+-- The uid should become an Int once there's a consequent amount
+-- of data (hex -> Int) applied during reading
 data Item = Item { uid :: String
-                 , title :: T.Text
+                 , title :: String
                  , url :: String
                  , tags :: [String]
                  } deriving (Generic, Show)
 
 instance ToJSON ResultSet
-instance FromJSON ResultSet where
-  parseJSON = withObject "ResultSet" $ \x -> ResultSet
-    <$> x .: "cats"
+instance FromJSON ResultSet
 
 instance ToJSON Category
-instance FromJSON Category where
-  parseJSON = withObject "Category" $ \x -> Category
-    <$> x .: "name"
-    <*> x .: "description"
-    <*> x .: "items"
+instance FromJSON Category
 
 instance ToJSON Item
-instance FromJSON Item where
-  parseJSON = withObject "Item" $ \x -> Item
-    <$> x .: "uid"
-    <*> x .: "title"
-    <*> x .: "url"
-    <*> x .: "tags"
+instance FromJSON Item
 
+  -- TODO : make a second pass to change uids of doubles (append a or b)
+-- re-computes all the uids of Items in the entire ResultSet
 computeUids :: ResultSet -> ResultSet
 computeUids (ResultSet []) = ResultSet []
 computeUids (ResultSet cats') =
-  ResultSet $ map (\(Category n d items') -> Category n d $ map computeuid items') cats'
-    where computeuid (Item _ title' u ts) = Item (hash' title') title' u ts
-            where hash' = show . (flip mod) 0xfffff . hash
+  ResultSet $ map (\c@Category{items=its} -> c{items= map computeuid its}) cats'
 
-insertAfterCategory :: String -> Category -> [Category] -> [Category]
-insertAfterCategory _ _ [] = []
-insertAfterCategory cname cat (c@Category{name=n}:cs)
-  | n == cname = c:cat:cs
-  | otherwise = c:insertAfterCategory cname cat cs
+-- compute the uid of an Item
+computeuid :: Item -> Item
+computeuid it@Item{title=t} =  it{uid=(hash' t)}
+  where hash' = take 5 . (flip showHex) "" . abs . hash
+  -- TODO there's a better way to do this (abs and take 5 are like quite ugly) I believe
 
-modCategoryName :: String -> Category -> [Category] -> [Category]
-modCategoryName cname cat =
-  map (\c@Category{name=n} -> if n == cname
-                             then cat
-                             else c)
+-- append a new category to the ResultSet
+appendCategory :: Category -> ResultSet -> ResultSet
+appendCategory c = cmap $ (flip (++)) [c]
 
-modCategory :: Category -> [Category] -> [Category]
+-- Insert a category after the one with the given name
+insertCategory :: String -> Category -> ResultSet -> ResultSet
+insertCategory cname cat = cmap iter
+  where
+    iter [] = []
+    iter (c@Category{name=n}:cs) | n == cname = c:cat:cs
+                                 | otherwise  = c:iter cs
+
+-- Modify the category with the given name
+modCategoryName :: String -> Category -> ResultSet -> ResultSet
+modCategoryName cname new  = cmap $ map (\old@Category{name=n} -> if
+                                            | n == cname -> replaceCat old new
+                                            | otherwise -> old)
+-- Modify the category with the same name
+modCategory :: Category -> ResultSet -> ResultSet
 modCategory c@Category{name=n} = modCategoryName n c
 
-deleteItem :: String -> [Item] -> [Item]
-deleteItem uid' = filter (\Item{uid=u} -> u /= uid')
 
-modItem :: String -> Item -> [Item] -> [Item]
-modItem uid' it =
-  map (\i@Item{uid=u} -> if u == uid'
-                        then it
-                        else i)
+-- append a new Item to the given name's Category items
+appendItem :: String -> Item -> ResultSet -> ResultSet
+appendItem cname it = icmap cname $ (flip (++)) [computeuid it]
+-- prepend a new Item to the given name's Category items
+prependItem :: String -> Item -> ResultSet -> ResultSet
+prependItem cname it = icmap cname $ (:) (computeuid it)
+
+-- TODO : generic method on if uid == thisid
+-- add a Tag to the given uid Item
+addTags :: String -> [String] -> ResultSet -> ResultSet
+addTags uid' ntags =
+  imap $ map (\old@Item{uid=id, tags=otags} -> if id == uid'
+                                              then replaceItem old old{tags=otags++ntags}
+                                              else old)
+
+-- Modify the Item with the given uid
+modItem :: String -> Item -> ResultSet -> ResultSet
+modItem uid' new = imap $ map (\old@Item{uid=id} -> if id == uid'
+                                                   then computeuid $ replaceItem old new
+                                                   else old)
+-- Deletes the Item with the given uid
+deleteItem :: String -> ResultSet -> ResultSet
+deleteItem uid' = imap $ filter (\Item{uid=id} -> id /= uid')
+
+-- cmap/imap aren't good names, as we don't necessarily map over it
+cmap :: ([Category] -> [Category]) -> ResultSet -> ResultSet
+cmap f (ResultSet cs) = ResultSet (f cs)
+
+imap :: ([Item] -> [Item]) -> ResultSet -> ResultSet
+imap f = cmap $ map (\c@Category{items=its} -> c{items=f its})
+
+icmap :: String -> ([Item] -> [Item]) -> ResultSet -> ResultSet
+icmap cname f =
+  cmap $ map (\c@Category{name=n, items=its} -> if n == cname
+                                               then c{items=f its}
+                                               else c{items=its})
+
+(??) :: Foldable t => t a -> t a -> t a
+(??) x y = if null x then y else x
+
+replaceCat :: Category -> Category -> Category
+replaceCat (Category oldname olddescr its) (Category newname newdescr _)  =
+  Category (newname ?? oldname) (newdescr ?? olddescr) its
+
+replaceItem :: Item -> Item -> Item
+replaceItem (Item _ oldtitle oldurl oldtags) (Item _ newtitle newurl newtags) =
+  computeuid $ Item "" (newtitle ?? oldtitle)
+                       (newurl ?? oldurl)
+                       (newtags ?? oldtags)

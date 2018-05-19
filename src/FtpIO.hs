@@ -21,12 +21,12 @@ someFunc = do str <- B.readFile testReadLocation
                 set = (getSet . BL.fromStrict) str
                 in (print . show . encode . computeUids) set
 
-writeLinks :: ResultSet -> IO ()
-writeLinks rs = do BL.writeFile testWriteLocation . encode $ rs
+writeLinks :: FilePath -> ResultSet -> IO ()
+writeLinks filepath rs = do BL.writeFile filepath . encode $ rs
 
-readLinks :: IO ResultSet
-readLinks = do str <- B.readFile testReadLocation
-               return . getSet. BL.fromStrict $ str
+readLinks :: FilePath -> IO ResultSet
+readLinks filepath = do str <- B.readFile filepath
+                        return . getSet. BL.fromStrict $ str
 
 getSet :: BL.ByteString -> ResultSet
 getSet str = case (decode str) of

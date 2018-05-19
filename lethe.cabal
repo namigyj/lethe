@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fc296504e643667d241c3b25d96309886eb563ae6b877cdf7992db3bfb50939a
+-- hash: 24152cc024492afe1ce445bdbc4c5cdee0836be1a75ca012d054c6f6a9d22dc0
 
 name:           lethe
 version:        0.1.0.0
@@ -33,6 +33,7 @@ library
       aeson
     , base >=4.7 && <5
     , bytestring
+    , cmdargs
     , hashable
     , text
   exposed-modules:
@@ -51,6 +52,7 @@ executable lethe
       aeson
     , base >=4.7 && <5
     , bytestring
+    , cmdargs
     , hashable
     , lethe
     , text
@@ -68,6 +70,7 @@ test-suite lethe-test
       aeson
     , base >=4.7 && <5
     , bytestring
+    , cmdargs
     , hashable
     , lethe
     , text
