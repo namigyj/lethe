@@ -33,6 +33,7 @@ dependencies:
 - text
 - hashable
 - cmdargs
+- directory
 
 library:
   source-dirs: src

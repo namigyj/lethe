@@ -9,13 +9,15 @@ import CmdLethe
 import qualified Lib as L
 
 -- DELETE ME
+tmpTest = "/home/zerotsu/code/web/dfc.moe/data/links.json"
 
 main :: IO ()
-main = do md <- mode
+main = do someFunc
+      {-- md <- mode
           print md
           rs <- readLinks tmpTest
           execOrQuit (cmdHandler md) rs
-
+       --}
   -- There must be a better way to do Error handling, but I have no idea ...
 execOrQuit :: Either (L.ResultSet -> L.ResultSet) (IO ()) -> L.ResultSet -> IO ()
 execOrQuit (Left f) rs = writeLinks tmpTest $ f rs
@@ -60,12 +62,6 @@ badArg msg = die $ "[Error] Bad argument: " ++ msg
 splitTags :: String -> [String]
 splitTags =
   let
-    split2 s str = iter "" str
-        where
-            iter acc []     = (acc, "")
-            iter acc (x:xs) | x == s    = (acc, xs)
-                            | otherwise = iter (acc++[x]) xs
-
     split s str = iter [] str
         where
             iter acc [] = acc
