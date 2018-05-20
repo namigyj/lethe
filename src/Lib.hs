@@ -48,18 +48,18 @@ instance FromJSON Item
 
   -- TODO : make a second pass to change uids of doubles (append a or b)
 -- re-computes all the uids of Items in the entire ResultSet
-computeUids :: ResultSet -> ResultSet
-computeUids (ResultSet []) = ResultSet []
-computeUids (ResultSet cats') =
+computeAllUids :: ResultSet -> ResultSet
+computeAllUids (ResultSet []) = ResultSet []
+computeAllUids (ResultSet cats') =
   ResultSet $ map (\c@Category{items=its} -> c{items= map computeuid its}) cats'
 
--- compute the uid of an Item
+-- Compute the uid of an Item
 computeuid :: Item -> Item
 computeuid it@Item{title=t} =  it{uid=(hash' t)}
   where hash' = take 5 . (flip showHex) "" . abs . hash
   -- TODO there's a better way to do this (abs and take 5 are like quite ugly) I believe
 
--- append a new category to the ResultSet
+-- Append a new category to the ResultSet
 appendCategory :: Category -> ResultSet -> ResultSet
 appendCategory c = cmap $ (flip (++)) [c]
 

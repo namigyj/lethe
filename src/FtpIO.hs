@@ -6,7 +6,7 @@ import           Data.Aeson
 import qualified Data.ByteString       as B  (readFile)
 import qualified Data.ByteString.Lazy  as BL
 --import           Data.ByteString.Char8       (unpack, pack)
-import qualified System.IO                   (FilePath)
+import System.IO()
 
 
 testReadLocation :: FilePath
@@ -19,7 +19,7 @@ someFunc :: IO ()
 someFunc = do str <- B.readFile testReadLocation
               let
                 set = (getSet . BL.fromStrict) str
-                in (print . show . encode . computeUids) set
+                in (print . show . encode . computeAllUids) set
 
 writeLinks :: FilePath -> ResultSet -> IO ()
 writeLinks filepath rs = do BL.writeFile filepath . encode $ rs

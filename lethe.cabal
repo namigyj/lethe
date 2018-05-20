@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 24152cc024492afe1ce445bdbc4c5cdee0836be1a75ca012d054c6f6a9d22dc0
+-- hash: 2286c96049bed696ca7a7bab41cd0fcb46a9c20ff41751ebb1b1f49bfcc72bcd
 
 name:           lethe
 version:        0.1.0.0
@@ -37,6 +37,7 @@ library
     , hashable
     , text
   exposed-modules:
+      CmdLethe
       FtpIO
       Lib
   other-modules:
