@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0ed41d1d6e578f25f07788590bc1ccbd9f42a7fd0c636a327b113c84f2379c95
+-- hash: 1b0d54005f5b5936a10cc50ca130f97637031ed54f22694e9b723e4353eb16ac
 
 name:           lethe
-version:        0.1.0.0
+version:        0.1.0.1
 description:    Please see the README on GitHub at <https://github.com/namigyj/lethe#readme>
 homepage:       https://github.com/namigyj/lethe#readme
 bug-reports:    https://github.com/namigyj/lethe/issues
@@ -30,11 +30,14 @@ library
       src
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
-      aeson
+      MissingH
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , cmdargs
+    , curl
     , directory
+    , ftphs
     , hashable
     , text
   exposed-modules:
@@ -51,11 +54,14 @@ executable lethe
       app
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      MissingH
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , cmdargs
+    , curl
     , directory
+    , ftphs
     , hashable
     , lethe
     , text
@@ -70,11 +76,14 @@ test-suite lethe-test
       test
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      MissingH
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , cmdargs
+    , curl
     , directory
+    , ftphs
     , hashable
     , lethe
     , text

@@ -1,5 +1,5 @@
 name:                lethe
-version:             0.1.0.0
+version:             0.1.0.1
 github:              "namigyj/lethe"
 license:             BSD3
 author:              "ngyj (namigyj)"
@@ -34,6 +34,9 @@ dependencies:
 - hashable
 - cmdargs
 - directory
+- ftphs
+- MissingH
+- curl
 
 library:
   source-dirs: src
