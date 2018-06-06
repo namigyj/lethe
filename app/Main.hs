@@ -9,22 +9,25 @@ import CmdLethe
 import qualified Lib as L
 import Network.FTP.Client (quit)
 
+-- I guess this is what they mean when talking about "abusing do notation"
+-- although I have no fucking Idea how I would rewrite this in a readable manner
+-- with >>=
 main :: IO ()
-main = do h <- readConfig >>= ftpconn
-          md <- mode
-          print md
-          rs <- readCurl
+main = do md <- mode
+          cc <- readConfig
+          rs <- readCurl $ durl cc
           -- TODO : handle Result message (print sth ?)
+          h  <- ftpconn cc
           cmdHandler md
-            >>= \f -> writeFtp h (f rs) -- keep warning for TODO
+            >>= \f -> writeFtp h (floc cc) (f rs) -- keep warning as reminder
             >>= print
           quit h
             >>= print
 
 
--- cmdHandler should be :: Lethe -> (ResultSet -> ResultSet)
--- that way it only gives back an operation, independant of the data we would apply on it
+-- | Commandline arguments handler, returns a function to apply on the resultSet
 cmdHandler :: Lethe -> IO (L.ResultSet -> L.ResultSet)
+  -- refresh all the ids
 cmdHandler Refresh
     = return $ L.computeAllUids
 cmdHandler Link{method=Mod, uid=Nothing} = badArg "id of the link required"
@@ -53,11 +56,13 @@ cmdHandler Cat{method=Add, name_=n, description=d}
 cmdHandler Cat{method=Mod, catname=Just cn, name_=n, description=d}
     = return $ L.modCategory cn (L.Category n d [])
 
-
+-- | Die on bad argument
 badArg :: String -> IO (L.ResultSet -> L.ResultSet)
 badArg msg = die $ "[Error] Bad argument: " ++ msg
 
--- Tags is a ','-separated list in a string
+-- | Split a string of tags to a list of tags
+--   Tags is a ','-separated list in a string
+--   .e.g. "foo,bar,baz"
 splitTags :: String -> [String]
 splitTags =
   let

@@ -46,7 +46,8 @@ mode = cmdArgs $ modes [link,cat,refresh]
   &= summary (_PROGRAM_NAME ++ _PROGRAM_VERSION ++ "\nRecord it and never forgetti")
   &= helpArg [explicit, name "help", name "h"]
 
-_PROGRAM_NAME :: String
 _PROGRAM_NAME = "lethe"
-_PROGRAM_VERSION :: String
 _PROGRAM_VERSION = "v0.1"
+
+_PROGRAM_NAME :: String
+_PROGRAM_VERSION :: String

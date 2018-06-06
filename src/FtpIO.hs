@@ -1,68 +1,69 @@
-
 module FtpIO where
 
 import Lib
 
 import           System.Exit
 import           System.IO()
+import qualified System.Directory      as SD
+
 import           Data.Aeson
 import           Data.ByteString.Lazy.Char8  (pack, unpack)
 import           Data.List.Utils             (seqList)
-import qualified Network.Curl          as C
-import qualified Data.ByteString       as B  (readFile)
 import qualified Data.ByteString.Lazy  as BL
-import qualified System.Directory      as SD
-import qualified Network.FTP.Client    as NFC
+
+import qualified Network.Curl          as C
+
+import Network.FTP.Client (FTPConnection, easyConnectFTP, login, getlines, putlines)
 import Network.FTP.Client.Parser (FTPResult)
-
-testLocation :: FilePath
-testLocation = "/home/zerotsu/code/haskell/lethe/links.json"
-
-fileLocation :: String
-fileLocation = "www/data/links.json"
 
 
 -- | Connect to the ftp server after reading config File
-ftpconn :: FtpParams -> IO NFC.FTPConnection
-ftpconn (FtpParams h u p) = do con <- NFC.easyConnectFTP h
-                               _ <- NFC.login con u (Just p) Nothing
-                               return con
+ftpconn :: FtpParams -> IO FTPConnection
+ftpconn FtpParams{host=h,user=u,pass=p} =
+    do con <- easyConnectFTP h
+       _ <- login con u (Just p) Nothing
+       return con
 
 -- | get the file but with curl, because I can't get around the laziness
 -- | despite using seqList
-readCurl :: IO ResultSet
-readCurl = C.curlGetString "https://dfc.moe/data/links.json" []
-           >>= return . getSet . pack . snd
+readCurl :: String -> IO ResultSet
+readCurl durl' = C.curlGetString durl' []
+                >>= return . getSet . pack . snd
 
 -- | get the ResultSet from the JSONfile from the FTPConnection
-readFtp :: NFC.FTPConnection -> IO ResultSet
-readFtp h = do s <- NFC.getlines h fileLocation
-               return . getSet . pack . unlines $ seqList (fst s)
+readFtp :: FTPConnection -> String -> IO ResultSet
+readFtp h fl = do s <- getlines h fl
+                  return . getSet . pack . unlines $ seqList (fst s)
 
 -- | write the ResultSet to the file on the FtpConnection
-writeFtp :: NFC.FTPConnection -> ResultSet -> IO FTPResult
-writeFtp h rs = NFC.putlines h fileLocation . lines . unpack . encode  $ rs
+  -- .eg. "www/data/links.json"
+writeFtp :: FTPConnection -> String -> ResultSet -> IO FTPResult
+writeFtp h fl rs = putlines h fl . lines . unpack . encode  $ rs
 
 
 getSet :: BL.ByteString -> ResultSet
 getSet str = case (decode str) of
   Just x -> x
   Nothing -> ResultSet []
-
-data FtpParams = FtpParams { host :: String
-                           , user :: String
-                           , pass :: String
+-- | Params from the config file to set up the FTPConnection
+data FtpParams = FtpParams { host :: String -- | hostname of FTP server
+                           , user :: String -- | username on FTP server
+                           , pass :: String -- | password on FTP server
+                           , floc :: String -- | path of file to write on FTP server
+                           , durl :: String -- | url of file to read (cURL)
                            } deriving (Show)
 
 mkParams :: [(String, String)] -> FtpParams
-mkParams ls = iter ls $ FtpParams "" "" ""
+mkParams ls = iter ls $ FtpParams "" "" "" "" ""
   where
     iter [] conf = conf
     iter ((k,v):xs) conf = iter xs cc
       where cc = case (k, v) of
-                   ("host"     , _) -> iter xs conf{host=v}
-                   ("password" , _) -> iter xs conf{pass=v}
-                   ("username" , _) -> iter xs conf{user=v}
+                   ("host"       , _) -> iter xs conf{host=v}
+                   ("password"   , _) -> iter xs conf{pass=v}
+                   ("username"   , _) -> iter xs conf{user=v}
+                   ("ftplocation", _) -> iter xs conf{floc=v}
+                   ("dataurl"    , _) -> iter xs conf{durl=v}
                    _                -> iter xs conf
 
 split2 :: Char -> String -> (String, String)
