@@ -15,15 +15,20 @@ import Network.FTP.Client (quit)
 main :: IO ()
 main = do md <- mode
           cc <- readConfig
-          rs <- readCurl $ durl cc
+          rs <- durl' cc >>= readCurl
           -- TODO : handle Result message (print sth ?)
           h  <- ftpconn cc
+          fl <- floc' cc
           cmdHandler md
-            >>= \f -> writeFtp h (floc cc) (f rs) -- keep warning as reminder
+            >>= \f -> writeFtp h fl (f rs) -- keep warning as reminder
             >>= print
           quit h
             >>= print
-
+          where
+            durl' FtpParams{durl=Nothing} = die "data url missing"
+            durl' FtpParams{durl=Just x} = return x
+            floc' FtpParams{floc=Nothing} = die "ftp file location missing"
+            floc' FtpParams{floc=Just x} = return x
 
 -- | Commandline arguments handler, returns a function to apply on the resultSet
 cmdHandler :: Lethe -> IO (L.ResultSet -> L.ResultSet)

@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1b0d54005f5b5936a10cc50ca130f97637031ed54f22694e9b723e4353eb16ac
+-- hash: 566b619cfff87cb56ba25537fd1b65a1e017b14cceca16f2aa0e0c295825f1bc
 
 name:           lethe
 version:        0.1.0.1
@@ -16,7 +16,6 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     ChangeLog.md
     README.md
