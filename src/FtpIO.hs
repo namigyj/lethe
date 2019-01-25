@@ -37,7 +37,7 @@ readFtp h fl = do s <- getlines h fl
                   return . getSet . pack . unlines $ seqList (fst s)
 
 -- | write the ResultSet to the file on the FtpConnection
-  -- .eg. "www/data/links.json"
+-- .eg. "www/data/links.json"
 writeFtp :: FTPConnection -> String -> ResultSet -> IO FTPResult
 writeFtp h fl rs = putlines h fl . lines . unpack . encode  $ rs
 
@@ -47,11 +47,11 @@ getSet str = case (decode str) of
   Just x -> x
   Nothing -> ResultSet []
 -- | Params from the config file to set up the FTPConnection
-data FtpParams = FtpParams { host :: Maybe String -- | hostname of FTP server
-                           , user :: Maybe String -- | username on FTP server
-                           , pass :: Maybe String -- | password on FTP server
-                           , floc :: Maybe String -- | path of file to write on FTP server
-                           , durl :: Maybe String -- | url of file to read (cURL)
+data FtpParams = FtpParams { host :: Maybe String -- ^ hostname of FTP server
+                           , user :: Maybe String -- ^ username on FTP server
+                           , pass :: Maybe String -- ^ password on FTP server
+                           , floc :: Maybe String -- ^ path of file to write on FTP server
+                           , durl :: Maybe String -- ^ url of file to read (cURL)
                            } deriving (Show)
 
 -- | Convert the lines read from the config files into the FtpParams structure

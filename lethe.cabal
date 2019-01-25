@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 566b619cfff87cb56ba25537fd1b65a1e017b14cceca16f2aa0e0c295825f1bc
+-- hash: 1040a80fa34317f3b1db016f620f2c3c9259c777e8baf8b203405f3d1b79c2c9
 
 name:           lethe
 version:        0.1.0.1
@@ -25,6 +25,12 @@ source-repository head
   location: https://github.com/namigyj/lethe
 
 library
+  exposed-modules:
+      CmdLethe
+      FtpIO
+      Lib
+  other-modules:
+      Paths_lethe
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
@@ -39,16 +45,12 @@ library
     , ftphs
     , hashable
     , text
-  exposed-modules:
-      CmdLethe
-      FtpIO
-      Lib
-  other-modules:
-      Paths_lethe
   default-language: Haskell2010
 
 executable lethe
   main-is: Main.hs
+  other-modules:
+      Paths_lethe
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -64,13 +66,13 @@ executable lethe
     , hashable
     , lethe
     , text
-  other-modules:
-      Paths_lethe
   default-language: Haskell2010
 
 test-suite lethe-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
+  other-modules:
+      Paths_lethe
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -86,6 +88,4 @@ test-suite lethe-test
     , hashable
     , lethe
     , text
-  other-modules:
-      Paths_lethe
   default-language: Haskell2010

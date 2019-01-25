@@ -25,18 +25,18 @@ data ResultSet = ResultSet { cats :: [Category]
                            } deriving (Generic, Show)
 
 -- | category of bookmark links
-data Category = Category { name :: String         -- | name of the Category
-                         , description :: String  -- | description of it
-                         , items :: [Item]        -- | collection of bookmark links
+data Category = Category { name :: String         -- ^ name of the Category
+                         , description :: String  -- ^ description of it
+                         , items :: [Item]        -- ^ collection of bookmark links
                          } deriving (Generic, Show)
 
 -- | The bookmark link struct
 -- | FIXME : The uid should become an Int once there's a consequent amount
 -- |         of data (hex -> Int) applied during reading, I think
-data Item = Item { uid :: String    -- | not so unique identifier, (hash of title)
-                 , title :: String  -- | The title/name of the bookmark link
-                 , url :: String    -- | URL
-                 , tags :: [String] -- | List of tags (for later being able to query)
+data Item = Item { uid :: String    -- ^ not so unique identifier, (hash of title)
+                 , title :: String  -- ^ The title/name of the bookmark link
+                 , url :: String    -- ^ URL
+                 , tags :: [String] -- ^ List of tags (for later being able to query)
                  } deriving (Generic, Show)
 
 instance ToJSON ResultSet

@@ -36,6 +36,7 @@ cat = Cat
         , Add &= help "Add a new category"]
   , catname = def &= args &= typ "CATEGORY_NAME" -- &= opt "Articles"
   } &= help "Add or modify a category of bookmarks"
+
 refresh :: Lethe
 refresh = Refresh {} &= help "Recompute the uids of all the items"
 
