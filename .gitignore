@@ -1,3 +1,6 @@
 dist/
+dist-newstyle
 .stack-work/
 *~*.json
+\#*\#
+.ghc.env*
