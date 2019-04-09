@@ -1,71 +1,57 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1040a80fa34317f3b1db016f620f2c3c9259c777e8baf8b203405f3d1b79c2c9
+-- hash: 192e7a31e6bd35328d294d3e79f966f560cf5a320a5bf77ef1de797f538f6329
 
 name:           lethe
-version:        0.1.0.1
-description:    Please see the README on GitHub at <https://github.com/namigyj/lethe#readme>
-homepage:       https://github.com/namigyj/lethe#readme
-bug-reports:    https://github.com/namigyj/lethe/issues
-author:         ngyj (namigyj)
-maintainer:     namigyj@dfc.moe
-copyright:      2018 ngyj
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/ngyj/lethe#readme>
+homepage:       https://github.com/ngyj/lethe#readme
+bug-reports:    https://github.com/ngyj/lethe/issues
+author:         ngyj
+maintainer:     ngyj@cinnabar.fr
+copyright:      2019 ngyj
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    ChangeLog.md
     README.md
+    ChangeLog.md
 
 source-repository head
   type: git
-  location: https://github.com/namigyj/lethe
+  location: https://github.com/ngyj/lethe
 
 library
   exposed-modules:
-      CmdLethe
-      FtpIO
       Lib
   other-modules:
       Paths_lethe
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
-      MissingH
-    , aeson
-    , base >=4.7 && <5
-    , bytestring
+      base >=4.7 && <5
     , cmdargs
-    , curl
-    , directory
-    , ftphs
-    , hashable
-    , text
+    , microlens
+    , microlens-th
   default-language: Haskell2010
 
-executable lethe
+executable lethe-exe
   main-is: Main.hs
   other-modules:
       Paths_lethe
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      MissingH
-    , aeson
-    , base >=4.7 && <5
-    , bytestring
+      base >=4.7 && <5
     , cmdargs
-    , curl
-    , directory
-    , ftphs
-    , hashable
     , lethe
-    , text
+    , microlens
+    , microlens-th
   default-language: Haskell2010
 
 test-suite lethe-test
@@ -75,17 +61,11 @@ test-suite lethe-test
       Paths_lethe
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      MissingH
-    , aeson
-    , base >=4.7 && <5
-    , bytestring
+      base >=4.7 && <5
     , cmdargs
-    , curl
-    , directory
-    , ftphs
-    , hashable
     , lethe
-    , text
+    , microlens
+    , microlens-th
   default-language: Haskell2010

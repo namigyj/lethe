@@ -1,141 +1,61 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE TemplateHaskell #-}
+module Lib where
 
-module Lib
-  {--( computeUids
-  , insertAfterCategory
-  , modCategoryName
-  , modCategory
-  , deleteItem
-  , modItem
-  , ResultSet
-  , Category
-  , Item )--}where
+import GHC.Word (Word16)
 
-import Data.Aeson
-import Data.Hashable (hash)
-import Numeric (showHex)
-import Data.Text()
+import Lens.Micro
+import Lens.Micro.TH (makeLenses)
 
-import GHC.Generics -- for the default ToJSON
+someFunc :: IO ()
+someFunc = putStrLn "someFunc"
 
--- | Top level object of the JSON structure, contains categories of bookmark links
-data ResultSet = ResultSet { cats :: [Category]
-                           } deriving (Generic, Show)
+newtype ResultSet = ResultSet { _cats :: [Category]
+                              } deriving (Eq, Show)
 
 -- | category of bookmark links
-data Category = Category { name :: String         -- ^ name of the Category
-                         , description :: String  -- ^ description of it
-                         , items :: [Item]        -- ^ collection of bookmark links
-                         } deriving (Generic, Show)
+data Category = Category { _name :: !String         -- ^ name of the Category
+                         , _description :: !String  -- ^ description of it
+                         , _items :: [Item]        -- ^ collection of bookmark links
+                         } deriving (Eq, Show)
 
 -- | The bookmark link struct
 -- | FIXME : The uid should become an Int once there's a consequent amount
 -- |         of data (hex -> Int) applied during reading, I think
-data Item = Item { uid :: String    -- ^ not so unique identifier, (hash of title)
-                 , title :: String  -- ^ The title/name of the bookmark link
-                 , url :: String    -- ^ URL
-                 , tags :: [String] -- ^ List of tags (for later being able to query)
-                 } deriving (Generic, Show)
+data Item = Item { _title :: !String  -- ^ The title/name of the bookmark link
+                 , _url :: !String    -- ^ URL
+                 , _tags :: ![String] -- ^ List of tags (for later being able to query)
+                 , _uid :: !Word16    -- ^ not so unique identifier, (hash of title)
+                 } deriving (Eq, Show)
 
-instance ToJSON ResultSet
-instance FromJSON ResultSet
+makeLenses ''ResultSet
+makeLenses ''Category
+makeLenses ''Item
 
-instance ToJSON Category
-instance FromJSON Category
+addItem :: String -> Item -> ResultSet -> ResultSet
+addItem cname i = cats . singular each.filtered (\c -> _name c == cname) . items <>~ [i]
 
-instance ToJSON Item
-instance FromJSON Item
+delItem :: Word16 -> ResultSet -> ResultSet
+delItem uid = cats . each.items %~ filter (\i -> _uid i /= uid)
 
--- | re-computes all the uids of Items in the entire ResultSet
-  -- TODO : make a second pass to make existing uids unique (maybe append a or b ?)
-computeAllUids :: ResultSet -> ResultSet
-computeAllUids (ResultSet []) = ResultSet []
-computeAllUids (ResultSet cats') =
-  ResultSet $ map (\c@Category{items=its} -> c{items= map computeuid its}) cats'
+-- FIXME better name
+class Default a where
+  (??) :: a -> a -> a
 
--- | Compute the uid of an Item
-computeuid :: Item -> Item
-computeuid it@Item{title=t} =  it{uid=(hash' t)}
-  where hash' = take 5 . (flip showHex) "" . abs . hash
-  -- FIXME : there's a better way to do this (abs and take 5 are like quite ugly) I believe
+instance Default [a] where
+  [] ?? ys = ys
+  xs ?? _  = xs
 
--- | Append a new category to the ResultSet
-appendCategory :: Category -> ResultSet -> ResultSet
-appendCategory c = cmap $ (flip (++)) [c]
+modItem :: Item -> ResultSet -> ResultSet
+modItem it = cats.each . items.singular each.filtered (\i -> _uid i == _uid it) %~ id
 
--- | Insert a category after the one with the given name
-insertCategory :: String -> Category -> ResultSet -> ResultSet
-insertCategory cname cat = cmap iter
-  where
-    iter [] = []
-    iter (c@Category{name=n}:cs) | n == cname = c:cat:cs
-                                 | otherwise  = c:iter cs
-
--- | Modify the category with the given name
-modCategory :: String -> Category -> ResultSet -> ResultSet
-modCategory cname new  = cmap $ map (\old@Category{name=n} -> if
-                                            | n == cname -> replaceCat old new
-                                            | otherwise -> old)
--- | Modify the category with the same name
-modCategoryNN :: Category -> ResultSet -> ResultSet
-modCategoryNN c@Category{name=n} = modCategory n c
-
-
--- | Append a new Item to the given name's Category items
-appendItem :: String -> Item -> ResultSet -> ResultSet
-appendItem cname it = icmap cname $ (flip (++)) [computeuid it]
--- | prepend a new Item to the given name's Category items
-prependItem :: String -> Item -> ResultSet -> ResultSet
-prependItem cname it = icmap cname $ (:) (computeuid it)
-
--- | add a Tag to the given uid Item
---   TODO : generic method on if uid == thisid
-addTags :: String -> [String] -> ResultSet -> ResultSet
-addTags uid' ntags =
-  imap $ map (\old@Item{uid=id, tags=otags} -> if id == uid'
-                                              then replaceItem old old{tags=otags++ntags}
-                                              else old)
-
--- | Modify the Item with the given uid
-modItem :: String -> Item -> ResultSet -> ResultSet
-modItem uid' new = imap $ map (\old@Item{uid=id} -> if id == uid'
-                                                   then computeuid $ replaceItem old new
-                                                   else old)
--- | Deletes the Item with the given uid
-deleteItem :: String -> ResultSet -> ResultSet
-deleteItem uid' = imap $ filter (\Item{uid=id} -> id /= uid')
-
--- | Apply a function to the list of categories in a ResultSet
--- | FIXME: cmap isn't a good name as we don't really map over it
-cmap :: ([Category] -> [Category]) -> ResultSet -> ResultSet
-cmap f (ResultSet cs) = ResultSet (f cs)
-
--- | Apply a function to all the list of items in each category of a ResultSet
--- | FIXME: imap isn't a good name as we don't really map over it
-imap :: ([Item] -> [Item]) -> ResultSet -> ResultSet
-imap f = cmap $ map (\c@Category{items=its} -> c{items=f its})
-
--- | Apply a function to list of items in a category (specified by name) of a ResultSet
--- | FIXME: imap isn't a good name as we don't really map over it
-icmap :: String -> ([Item] -> [Item]) -> ResultSet -> ResultSet
-icmap cname f =
-  cmap $ map (\c@Category{name=n, items=its} -> if n == cname
-                                               then c{items=f its}
-                                               else c{items=its})
--- | Kinda like the ?? in C#
-(??) :: Foldable t => t a -> t a -> t a
-(??) x y = if null x then y else x
-
--- | helper to modify a category (only changing the attributes who aren't null)
-replaceCat :: Category -> Category -> Category
-replaceCat (Category oldname olddescr its) (Category newname newdescr _)  =
-  Category (newname ?? oldname) (newdescr ?? olddescr) its
-
--- | helper to modify an Item (only changing the attributes who aren't null)
-replaceItem :: Item -> Item -> Item
-replaceItem (Item _ oldtitle oldurl oldtags) (Item _ newtitle newurl newtags) =
-  computeuid $ Item "" (newtitle ?? oldtitle)
-                       (newurl ?? oldurl)
-                       (newtags ?? oldtags)
+-- tests
+x,y,z :: Item
+x = Item "i_x" "" ["ta","tb"] 0
+y = Item "i_y" "" ["tb"] 1
+z = Item "i_z" "" ["ta"] 2
+a,b,c :: Category
+a = Category "a" "foo_a" [x,y,z]
+b = Category "b" "foo_b" [Item "i1" "" [] 3]
+c = Category "b" "foo_b" [x, Item "i2" "" [] 4]
+r :: ResultSet
+r = ResultSet [a,b,c]
