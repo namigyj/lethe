@@ -21,9 +21,14 @@ description:         Please see the README on GitHub at <https://github.com/ngyj
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
+- text
 - microlens
 - microlens-th
 - cmdargs
+- hashable
+- hspec
+- QuickCheck
 
 library:
   source-dirs: src

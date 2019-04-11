@@ -1,6 +1,8 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE BangPatterns #-}
 module Lib ( ResultSet (..)
            , Category (..)
            , Item (..)
@@ -15,61 +17,62 @@ module Lib ( ResultSet (..)
            , splitTags
            ) where
 
-import GHC.Word (Word16)
-import System.Console.CmdArgs (Data, Typeable)
+import           Data.Char (isSpace)
+import           GHC.Generics (Generic)
+import           GHC.Word (Word16)
 
-import Lens.Micro
-import Lens.Micro.TH (makeLenses)
-
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+import           Data.Aeson (FromJSON, ToJSON)
+import           Data.Hashable (hash)
+import           Data.Text (Text, splitOn, strip)
+import qualified Data.Text as T
+import           Lens.Micro
+import           Lens.Micro.TH (makeLenses)
+import           System.Console.CmdArgs (Data, Typeable)
 
 -- | list of all categories
 newtype ResultSet = ResultSet { _cats :: [Category]
-                              } deriving (Eq, Show)
+                              } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 -- | category of bookmark links
-data Category = Category { _name :: !String        -- ^ name of the Category
-                         , _description :: !String -- ^ description of it
-                         , _items :: [Item]        -- ^ collection of bookmark links
-                         } deriving (Eq, Show)
+data Category = Category { _name :: !Text        -- ^ name of the Category
+                         , _description :: !Text -- ^ description of it
+                         , _items :: [Item]      -- ^ collection of bookmark links
+                         } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 -- | a bookmark item
-data Item = Item { _title :: !String  -- ^ The title/name of the bookmark link
-                 , _url :: !String    -- ^ URL
-                 , _tags :: ![String] -- ^ List of tags (for later being able to query)
-                 , _uid :: !Word16    -- ^ not so unique identifier, (hash of title)
-                 } deriving (Eq, Show)
+data Item = Item { _title :: !Text  -- ^ The title/name of the bookmark link
+                 , _url :: !Text    -- ^ URL
+                 , _tags :: ![Text] -- ^ List of tags (for later being able to query)
+                 , _uid :: !Word16  -- ^ not so unique identifier, (hash of title)
+                 } deriving (Eq, Show, Generic, ToJSON, FromJSON)
 
 makeLenses ''ResultSet
 makeLenses ''Category
 makeLenses ''Item
 
 -- | re-computes all the uids of Items in the entire ResultSet
--- | FIXME : make sure they are unique
+-- | FIXME : make sure they are unique (?)
 computeAllUids :: ResultSet -> ResultSet
 computeAllUids = cats.each.items.each %~ computeuid
 
 -- | update an item's uid
 computeuid :: Item -> Item
-{-# WARNING computeuid "TODO" #-}
-computeuid = id
+computeuid i = i{_uid=computeuid' i}
 
 -- | compute the uid of an item
 computeuid' :: Item -> Word16
-{-# WARNING computeuid' "TODO" #-}
-computeuid' = _uid
+computeuid' Item{_title,_url,_tags} = fromIntegral $ hash (_title,_url,_tags)
 
 -- | append a new category
 addCategory :: Category -> ResultSet -> ResultSet
 addCategory = (cats <>~) . pure
 
 -- | modify the category with the given name
-modCategory :: String -> Category -> ResultSet -> ResultSet
+modCategory :: Text -> Category -> ResultSet -> ResultSet
 modCategory cname cat = cats.each.filtered (\c -> _name c == cname) %~ (cat ??)
 
 -- | append a new Item to the given name's Category items
-addItem :: String -> Item -> ResultSet -> ResultSet
+addItem :: Text -> Item -> ResultSet -> ResultSet
 addItem cname i = cats . singular each.filtered (\c -> _name c == cname) . items <>~ [i]
 
 -- | delete all items with given uid from all categories
@@ -82,6 +85,13 @@ delItem uid = cats.each.items %~ filter (\i -> _uid i /= uid)
 modItem :: Item -> ResultSet -> ResultSet
 modItem it = cats.each . items.singular each. filtered (\i -> _uid i == _uid it) %~ (it ??)
 
+-- * Helpers
+-- | split on Char
+splitTags :: Text -> [Text]
+splitTags = fmap (unspace . strip) . splitOn ","
+  where
+    unspace = T.map (\c -> if isSpace c then '_' else c)
+
 -- | FIXME : better name
 -- | instance for Item also recompute the uids
 class Default a where
@@ -89,6 +99,9 @@ class Default a where
   (??) :: a -> a -> a
 instance Default [a] where
   [] ?? ys = ys
+  xs ?? _  = xs
+instance Default Text where
+  "" ?? ys = ys
   xs ?? _  = xs
 instance Default Item where
   i1 ?? i2 = computeuid $ Item{ _title = _title i1 ?? _title i2
@@ -101,30 +114,3 @@ instance Default Category where
                      , _description = _description c1 ?? _description c2
                      , _items = _items c1 ?? _items c2
                      }
-
--- | split on Char
-splitTags :: String -> [String]
-splitTags = splitOn ','
-
--- | FIXME please rewrite me I'm shit.
-splitOn :: Char -> String -> [String]
-splitOn c = go [] ""
-  where
-    go !s "" "" = s
-    go s e ""  = s <> [reverse e]
-    go s e (c:xs) = case c of
-      ',' -> go (s <> [reverse e]) "" xs
-      ' ' -> go s ('_':e) xs
-      _   -> go s (c:e) xs
-
--- tests
-x,y,z :: Item
-x = Item "i_x" "" ["ta","tb"] 0
-y = Item "i_y" "" ["tb"] 1
-z = Item "i_z" "" ["ta"] 2
-a,b,c :: Category
-a = Category "a" "foo_a" [x,y,z]
-b = Category "b" "foo_b" [Item "i1" "" [] 3]
-c = Category "b" "foo_b" [x, Item "i2" "" [] 4]
-r :: ResultSet
-r = ResultSet [a,b,c]

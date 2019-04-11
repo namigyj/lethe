@@ -1,11 +1,13 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import Text.Read (readMaybe)
 import Data.Word (Word16)
 
 import System.Console.CmdArgs
+import Data.Text (Text,unpack,empty)
 
 import Lib
 
@@ -15,10 +17,10 @@ main = print =<< mode
 data Method = Add | Mod | Del
               deriving (Data, Typeable, Show, Eq)
 data Command
-  = Link { title'::String, url'::String, tags'::String
-         , uid'::String, method'::Method, catname'::String }
-  | Cat  { description'::String, newname'::String
-         , method'::Method, catname'::String }
+  = Link { title'::Text, url'::Text, tags'::Text
+         , uid'::Text, method'::Method, catname'::Text }
+  | Cat  { description'::Text, newname'::Text
+         , method'::Method, catname'::Text }
   | Refresh
   deriving (Data, Typeable, Show, Eq)
 
@@ -26,9 +28,9 @@ link :: Command
 link = Link
   { catname' = "Articles" &= name "c"  &= typ "STR"
               &= help "category name to add the link to (default: Articles)"
-  , title' = "" &= name "t" &= typ "STR"
+  , title' = def &= name "t" &= typ "STR"
             &= help "title of the item"
-  , url' = "" &= name "u" &= typ "STR"
+  , url' = def &= name "u" &= typ "STR"
           &= help "url of the item"
   , tags' = def &= typ "LIST" &= name "g"
            &= help "comma (,) separated list of tags"
@@ -37,7 +39,7 @@ link = Link
         , Mod &= help "modify an existing item"
         , Del &= help "delete an existing item"
         ]
-  , uid' = def &= args &= typ "UID"
+  , uid' = def &= args &= typ "HEX"
   } &= help "add, modify or delete a single bookmark item" &= auto
 
 cat :: Command
@@ -63,13 +65,12 @@ mode = cmdArgs $ modes [link, cat, refresh]
   &= summary ("lethe " ++ "v0.2" ++ "\nRecord it and never forgetti")
   &= helpArg [explicit, name "help", name "h"]
 
-run :: Command -> ResultSet -> Either String ResultSet
+run :: Command -> ResultSet -> Either Text ResultSet
 run Refresh = pure . computeAllUids
 run Link{method',title',url',uid',tags',catname'} =
   let tags = splitTags tags'
       it = computeuid $ Item{_title=title',_url=url',_tags=tags,_uid=0}
-      uid :: Either String Word16
-      uid = case readMaybe ("0x"<>uid') of
+      uid = case readMaybe ("0x" <> unpack uid') of
               Nothing -> Left ("Could not parse uid: " <> uid')
               Just x -> Right x
   in case method' of
@@ -81,3 +82,6 @@ run Cat{method',catname',newname',description'} =
   in case method' of
     Add -> pure . addCategory it
     Mod -> pure . modCategory catname' it
+
+instance Default Text where
+  def = empty
