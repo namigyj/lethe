@@ -27,6 +27,8 @@ dependencies:
 - microlens-th
 - cmdargs
 - hashable
+- directory
+- transformers
 - hspec
 - QuickCheck
 

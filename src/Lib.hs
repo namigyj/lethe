@@ -93,9 +93,8 @@ splitTags = fmap (unspace . strip) . splitOn ","
     unspace = T.map (\c -> if isSpace c then '_' else c)
 
 -- | FIXME : better name
--- | instance for Item also recompute the uids
+--   instance for Item also recompute the uids
 class Default a where
--- | if lhs is default return rhs
   (??) :: a -> a -> a
 instance Default [a] where
   [] ?? ys = ys
@@ -109,6 +108,7 @@ instance Default Item where
                               , _tags  = _tags i1 ?? _tags i2
                               , _uid   = 0
                               }
+  -- ^  if lhs is default return rhs
 instance Default Category where
   c1 ?? c2 = Category{ _name = _name c1 ?? _name c2
                      , _description = _description c1 ?? _description c2

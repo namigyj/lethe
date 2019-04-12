@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b93e9235c5bc9b8d26b996602cef53bb280dcee800ceb66e073830e4abe79d4c
+-- hash: 685f732f941cdc88cbbfa086e434ba01f04e8f3eafb951ec052a71be0706b832
 
 name:           lethe
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Config
       Lib
   other-modules:
       Paths_lethe
@@ -37,11 +38,13 @@ library
     , aeson
     , base >=4.7 && <5
     , cmdargs
+    , directory
     , hashable
     , hspec
     , microlens
     , microlens-th
     , text
+    , transformers
   default-language: Haskell2010
 
 executable lethe-exe
@@ -56,12 +59,14 @@ executable lethe-exe
     , aeson
     , base >=4.7 && <5
     , cmdargs
+    , directory
     , hashable
     , hspec
     , lethe
     , microlens
     , microlens-th
     , text
+    , transformers
   default-language: Haskell2010
 
 test-suite lethe-test
@@ -77,10 +82,12 @@ test-suite lethe-test
     , aeson
     , base >=4.7 && <5
     , cmdargs
+    , directory
     , hashable
     , hspec
     , lethe
     , microlens
     , microlens-th
     , text
+    , transformers
   default-language: Haskell2010
