@@ -36,6 +36,7 @@ mkConfig :: [(Text, Text)] -> Either String Config
 mkConfig [] = Left "Empty config."
 mkConfig xs = Right . go (Config "" "" "" "") . map (fmap unpack) $ xs
   where
+    go c [] = c
     go c ((k, v):xs) = let c' | k == "hostname" = c{_hostn=v}
                               | k == "username" = c{_uname=v}
                               | k == "password" = c{_passw=v}

@@ -1,18 +1,22 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 module Main where
 
 import Text.Read (readMaybe)
 import Data.Word (Word16)
 
-import System.Console.CmdArgs
+import Data.ByteString.Lazy (toStrict)
+import Data.Aeson (encode, eitherDecodeStrict)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Except (ExceptT, except, runExceptT)
 import Data.Text (Text,unpack,empty)
+import Network.FTP.Client
+import System.Console.CmdArgs
 
+import Config
 import Lib
-
-main :: IO ()
-main = print =<< mode
 
 data Method = Add | Mod | Del
               deriving (Data, Typeable, Show, Eq)
@@ -62,22 +66,22 @@ mode :: IO Command
 mode = cmdArgs $ modes [link, cat, refresh]
   &= help "Add manage links on dfc.moe/links"
   &= program "lethe"
-  &= summary ("lethe " ++ "v0.2" ++ "\nRecord it and never forgetti")
+  &= summary ("lethe " <> "v0.2" <> "\nRecord it and never forgetti")
   &= helpArg [explicit, name "help", name "h"]
 
-run :: Command -> ResultSet -> Either Text ResultSet
-run Refresh = pure . computeAllUids
-run Link{method',title',url',uid',tags',catname'} =
+runCommand :: Command -> ResultSet -> Either String ResultSet
+runCommand Refresh = pure . computeAllUids
+runCommand Link{method',title',url',uid',tags',catname'} =
   let tags = splitTags tags'
       it = computeuid $ Item{_title=title',_url=url',_tags=tags,_uid=0}
       uid = case readMaybe ("0x" <> unpack uid') of
-              Nothing -> Left ("Could not parse uid: " <> uid')
+              Nothing -> Left ("Could not parse uid: " <> unpack uid')
               Just x -> Right x
   in case method' of
     Add -> pure . addItem catname' it
     Mod -> pure . modItem it
     Del -> \r -> flip delItem r <$> uid
-run Cat{method',catname',newname',description'} =
+runCommand Cat{method',catname',newname',description'} =
   let it = Category {_name=newname',_description=description',_items=[]}
   in case method' of
     Add -> pure . addCategory it
@@ -85,3 +89,23 @@ run Cat{method',catname',newname',description'} =
 
 instance Default Text where
   def = empty
+
+main :: IO ()
+main = runExceptT main' >>= \case Left s -> putStrLn $ "ERROR" <> s
+                                  Right s -> print s
+
+main' :: ExceptT String IO FTPResponse
+main' = do com <- lift mode
+           Config{_hostn,_uname,_passw,_fpath} <- getConfig
+           withFTP _hostn 21 $ \h w -> do
+             lift $ print w -- debug
+             s <- login h _uname _passw
+             lift $ print s -- debug
+             -- size h _fpath >>= lift . print
+             lift$ putStrLn ("retrieving " <> _fpath) -- debug
+             rs <- retr h _fpath >>= except . eitherDecodeStrict
+             lift $ print rs -- debug
+             -- retr h _fpath >>= lift . print -- debug
+             let bytes = toStrict . encode . runCommand com $ rs
+             stor h _fpath bytes TA
+             quit h

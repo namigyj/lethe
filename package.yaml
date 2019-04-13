@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - aeson
 - text
+- bytestring
 - microlens
 - microlens-th
 - cmdargs
@@ -31,6 +32,7 @@ dependencies:
 - transformers
 - hspec
 - QuickCheck
+- ftp-client
 
 library:
   source-dirs: src

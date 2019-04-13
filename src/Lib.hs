@@ -21,7 +21,7 @@ import           Data.Char (isSpace)
 import           GHC.Generics (Generic)
 import           GHC.Word (Word16)
 
-import           Data.Aeson (FromJSON, ToJSON)
+import           Data.Aeson.TH (deriveJSON, defaultOptions, fieldLabelModifier)
 import           Data.Hashable (hash)
 import           Data.Text (Text, splitOn, strip)
 import qualified Data.Text as T
@@ -31,24 +31,27 @@ import           System.Console.CmdArgs (Data, Typeable)
 
 -- | list of all categories
 newtype ResultSet = ResultSet { _cats :: [Category]
-                              } deriving (Eq, Show, Generic, ToJSON, FromJSON)
+                              } deriving (Eq, Show, Generic)
 
 -- | category of bookmark links
 data Category = Category { _name :: !Text        -- ^ name of the Category
                          , _description :: !Text -- ^ description of it
                          , _items :: [Item]      -- ^ collection of bookmark links
-                         } deriving (Eq, Show, Generic, ToJSON, FromJSON)
+                         } deriving (Eq, Show, Generic)
 
 -- | a bookmark item
 data Item = Item { _title :: !Text  -- ^ The title/name of the bookmark link
                  , _url :: !Text    -- ^ URL
                  , _tags :: ![Text] -- ^ List of tags (for later being able to query)
                  , _uid :: !Word16  -- ^ not so unique identifier, (hash of title)
-                 } deriving (Eq, Show, Generic, ToJSON, FromJSON)
+                 } deriving (Eq, Show, Generic)
 
 makeLenses ''ResultSet
 makeLenses ''Category
 makeLenses ''Item
+deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''ResultSet
+deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''Category
+deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''Item
 
 -- | re-computes all the uids of Items in the entire ResultSet
 -- | FIXME : make sure they are unique (?)

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 685f732f941cdc88cbbfa086e434ba01f04e8f3eafb951ec052a71be0706b832
+-- hash: 14f66b49d86e8060e76915bd1b328685d1028434be7da557d5c6ac70a474a517
 
 name:           lethe
 version:        0.1.0.0
@@ -37,8 +37,10 @@ library
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , bytestring
     , cmdargs
     , directory
+    , ftp-client
     , hashable
     , hspec
     , microlens
@@ -58,8 +60,10 @@ executable lethe-exe
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , bytestring
     , cmdargs
     , directory
+    , ftp-client
     , hashable
     , hspec
     , lethe
@@ -81,8 +85,10 @@ test-suite lethe-test
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , bytestring
     , cmdargs
     , directory
+    , ftp-client
     , hashable
     , hspec
     , lethe
