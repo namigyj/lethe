@@ -7,10 +7,10 @@ module Main where
 import Text.Read (readMaybe)
 import Data.Word (Word16)
 
-import Data.ByteString.Lazy (toStrict)
-import Data.Aeson (encode, eitherDecodeStrict)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT, except, runExceptT)
+import Data.Aeson (encode, eitherDecodeStrict)
+import Data.ByteString.Lazy (toStrict)
 import Data.Text (Text,unpack,empty)
 import Network.FTP.Client
 import System.Console.CmdArgs
@@ -91,21 +91,15 @@ instance Default Text where
   def = empty
 
 main :: IO ()
-main = runExceptT main' >>= \case Left s -> putStrLn $ "ERROR" <> s
+main = runExceptT main' >>= \case Left s -> putStrLn $ "ERROR " <> s
                                   Right s -> print s
 
 main' :: ExceptT String IO FTPResponse
 main' = do com <- lift mode
            Config{_hostn,_uname,_passw,_fpath} <- getConfig
-           withFTP _hostn 21 $ \h w -> do
-             lift $ print w -- debug
+           withFTP _hostn 21 $ \h _ -> do
              s <- login h _uname _passw
-             lift $ print s -- debug
-             -- size h _fpath >>= lift . print
-             lift$ putStrLn ("retrieving " <> _fpath) -- debug
              rs <- retr h _fpath >>= except . eitherDecodeStrict
-             lift $ print rs -- debug
-             -- retr h _fpath >>= lift . print -- debug
              let bytes = toStrict . encode . runCommand com $ rs
              stor h _fpath bytes TA
              quit h

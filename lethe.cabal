@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 14f66b49d86e8060e76915bd1b328685d1028434be7da557d5c6ac70a474a517
+-- hash: 7dfa9d6621fc6e312ab8bbd22d5bf8b7ad56b4721bc10fc8ae79cff9d29d83c6
 
 name:           lethe
 version:        0.1.0.0
@@ -40,7 +40,7 @@ library
     , bytestring
     , cmdargs
     , directory
-    , ftp-client
+    , ftp-client >=0.5.2
     , hashable
     , hspec
     , microlens
@@ -49,7 +49,7 @@ library
     , transformers
   default-language: Haskell2010
 
-executable lethe-exe
+executable lethe
   main-is: Main.hs
   other-modules:
       Paths_lethe
@@ -63,7 +63,7 @@ executable lethe-exe
     , bytestring
     , cmdargs
     , directory
-    , ftp-client
+    , ftp-client >=0.5.2
     , hashable
     , hspec
     , lethe
@@ -88,7 +88,7 @@ test-suite lethe-test
     , bytestring
     , cmdargs
     , directory
-    , ftp-client
+    , ftp-client >=0.5.2
     , hashable
     , hspec
     , lethe

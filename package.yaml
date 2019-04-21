@@ -32,13 +32,13 @@ dependencies:
 - transformers
 - hspec
 - QuickCheck
-- ftp-client
+- ftp-client >= 0.5.2
 
 library:
   source-dirs: src
 
 executables:
-  lethe-exe:
+  lethe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
