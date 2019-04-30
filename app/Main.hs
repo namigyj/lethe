@@ -11,6 +11,7 @@ import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT, except, runExceptT)
 import Data.Aeson (encode, eitherDecodeStrict)
 import Data.ByteString.Lazy (toStrict)
+import Data.ByteString (ByteString)
 import Data.Text (Text,unpack,empty)
 import Network.FTP.Client
 import System.Console.CmdArgs
@@ -99,7 +100,7 @@ main' = do com <- lift mode
            Config{_hostn,_uname,_passw,_fpath} <- getConfig
            withFTP _hostn 21 $ \h _ -> do
              s <- login h _uname _passw
-             rs <- retr h _fpath >>= except . eitherDecodeStrict
-             let bytes = toStrict . encode . runCommand com $ rs
-             stor h _fpath bytes TA
+             bs <- retr h _fpath
+             rs <- except (eitherDecodeStrict bs >>= runCommand com)
+             stor h _fpath (toStrict . encode $ rs) TA
              quit h
