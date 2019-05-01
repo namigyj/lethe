@@ -19,8 +19,11 @@ import System.Console.CmdArgs
 import Config
 import Lib
 
+-- | How to operate.
 data Method = Add | Mod | Del
               deriving (Data, Typeable, Show, Eq)
+
+-- | What to operate on.
 data Command
   = Link { title'::Text, url'::Text, tags'::Text
          , uid'::Text, method'::Method, catname'::Text }
@@ -29,6 +32,7 @@ data Command
   | Refresh
   deriving (Data, Typeable, Show, Eq)
 
+-- cmdargs link mode
 link :: Command
 link = Link
   { catname' = "Articles" &= name "c"  &= typ "STR"
@@ -47,6 +51,7 @@ link = Link
   , uid' = def &= args &= typ "HEX"
   } &= help "add, modify or delete a single bookmark item" &= auto
 
+-- cmdargs cat mode
 cat :: Command
 cat = Cat
   { catname' = def &= args &= typ "OLD_CATNAME"
@@ -60,6 +65,7 @@ cat = Cat
               &= help "new category name"
   } &= help "Add or modify a category of bookmarks"
 
+-- cmdargs refresh mode
 refresh :: Command
 refresh = Refresh {} &= help "Recompute the uids of all the items"
 
@@ -70,8 +76,8 @@ mode = cmdArgs $ modes [link, cat, refresh]
   &= summary ("lethe " <> "v0.2" <> "\nRecord it and never forgetti")
   &= helpArg [explicit, name "help", name "h"]
 
+-- | apply command on result set
 runCommand :: Command -> ResultSet -> Either String ResultSet
-runCommand Refresh = pure . computeAllUids
 runCommand Link{method',title',url',uid',tags',catname'} =
   let tags = splitTags tags'
       it = computeuid $ Item{_title=title',_url=url',_tags=tags,_uid=0}
@@ -87,6 +93,7 @@ runCommand Cat{method',catname',newname',description'} =
   in case method' of
     Add -> pure . addCategory it
     Mod -> pure . modCategory catname' it
+runCommand Refresh = pure . computeAllUids
 
 instance Default Text where
   def = empty

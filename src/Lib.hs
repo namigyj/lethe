@@ -9,11 +9,11 @@ module Lib ( ResultSet (..)
            , computeAllUids
            , computeuid
            , computeuid'
+           , addCategory
+           , modCategory
            , addItem
            , modItem
            , delItem
-           , addCategory
-           , modCategory
            , splitTags
            ) where
 
@@ -95,24 +95,23 @@ splitTags = fmap (unspace . strip) . splitOn ","
   where
     unspace = T.map (\c -> if isSpace c then '_' else c)
 
--- | FIXME : better name
---   instance for Item also recompute the uids
-class Default a where
+-- | instance for Item also recompute the uids
+class Null a where
   (??) :: a -> a -> a
-instance Default [a] where
+instance Null [a] where
   [] ?? ys = ys
   xs ?? _  = xs
-instance Default Text where
+instance Null Text where
   "" ?? ys = ys
   xs ?? _  = xs
-instance Default Item where
+instance Null Item where
   i1 ?? i2 = computeuid $ Item{ _title = _title i1 ?? _title i2
                               , _url   = _url i1 ?? _url i2
                               , _tags  = _tags i1 ?? _tags i2
                               , _uid   = 0
                               }
   -- ^  if lhs is default return rhs
-instance Default Category where
+instance Null Category where
   c1 ?? c2 = Category{ _name = _name c1 ?? _name c2
                      , _description = _description c1 ?? _description c2
                      , _items = _items c1 ?? _items c2
