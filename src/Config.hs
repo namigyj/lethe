@@ -20,6 +20,7 @@ data Config = Config { _hostn :: String -- ^ hostname
 
 makeLenses ''Config
 
+-- REFACTOR pass by commandline parameter
 -- | config filename @lethe.conf@
 configFileName :: FilePath
 configFileName = "lethe.conf"

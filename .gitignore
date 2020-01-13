@@ -4,3 +4,8 @@ dist-newstyle
 *~*.json
 \#*\#
 .ghc.env*
+.ghci
+links.bak.json
+links.json.new
+links.new.json
+stack.yaml.lock
