@@ -1,18 +1,12 @@
-cabal-version: 1.12
-
--- This file has been generated from package.yaml by hpack version 0.31.1.
---
--- see: https://github.com/sol/hpack
---
--- hash: 7dfa9d6621fc6e312ab8bbd22d5bf8b7ad56b4721bc10fc8ae79cff9d29d83c6
+cabal-version: 2.0
 
 name:           lethe
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/ngyj/lethe#readme>
-homepage:       https://github.com/ngyj/lethe#readme
-bug-reports:    https://github.com/ngyj/lethe/issues
-author:         ngyj
-maintainer:     ngyj@cinnabar.fr
+description:    Please see the README on GitHub at <https://github.com/yokodake/lethe#readme>
+homepage:       https://github.com/yokodake/lethe#readme
+bug-reports:    https://github.com/yokodake/lethe/issues
+author:         yokodake
+maintainer:     yokodake@cinnabar.fr
 copyright:      2019 ngyj
 license:        BSD3
 license-file:   LICENSE
@@ -29,71 +23,62 @@ library
   exposed-modules:
       Config
       Lib
-  other-modules:
-      Paths_lethe
+      Run
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wno-unused-top-binds
   build-depends:
-      QuickCheck
-    , aeson
-    , base >=4.7 && <5
-    , bytestring
-    , cmdargs
-    , directory
-    , ftp-client >=0.5.2
-    , hashable
-    , hspec
-    , microlens
-    , microlens-th
-    , text
-    , transformers
+     aeson
+   , base >=4.7 && <5
+   , bytestring
+   , cmdargs
+   , directory
+   , ftp-client >=0.5.1.2
+   , hashable
+   , hspec
+   , microlens
+   , microlens-th
+   , text
+   , transformers
   default-language: Haskell2010
 
 executable lethe
   main-is: Main.hs
-  other-modules:
-      Paths_lethe
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wno-orphans
   build-depends:
-      QuickCheck
-    , aeson
-    , base >=4.7 && <5
-    , bytestring
-    , cmdargs
-    , directory
-    , ftp-client >=0.5.2
-    , hashable
-    , hspec
-    , lethe
-    , microlens
-    , microlens-th
-    , text
-    , transformers
+     aeson
+   , base >=4.7 && <5
+   , bytestring
+   , cmdargs
+   , directory
+   , ftp-client >=0.5.1.2
+   , hashable
+   , hspec
+   , lethe
+   , microlens
+   , microlens-th
+   , text
+   , transformers
   default-language: Haskell2010
 
 test-suite lethe-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_lethe
+      LibSpec
+      MainSpec
+      Mocks
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
-    , aeson
     , base >=4.7 && <5
     , bytestring
-    , cmdargs
-    , directory
-    , ftp-client >=0.5.2
     , hashable
     , hspec
     , lethe
-    , microlens
-    , microlens-th
     , text
-    , transformers
   default-language: Haskell2010

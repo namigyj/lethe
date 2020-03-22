@@ -27,7 +27,6 @@ import           Data.Text (Text, splitOn, strip)
 import qualified Data.Text as T
 import           Lens.Micro
 import           Lens.Micro.TH (makeLenses)
-import           System.Console.CmdArgs (Data, Typeable)
 
 -- | list of all categories
 newtype ResultSet = ResultSet { _cats :: [Category]
@@ -54,7 +53,7 @@ deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''Category
 deriveJSON defaultOptions{fieldLabelModifier = drop 1} ''Item
 
 -- | re-computes all the uids of Items in the entire ResultSet
--- | FIXME : make sure they are unique (?)
+-- | @FIXME : make sure they are unique (?)
 computeAllUids :: ResultSet -> ResultSet
 computeAllUids = cats.each.items.each %~ computeuid
 
@@ -79,12 +78,12 @@ addItem :: Text -> Item -> ResultSet -> ResultSet
 addItem cname i = cats . singular each.filtered (\c -> _name c == cname) . items <>~ [i]
 
 -- | delete all items with given uid from all categories
--- | FIXME fail and/or warn if two items have same uid
+-- | @FIXME fail and/or warn if two items have same uid
 delItem :: Word16 -> ResultSet -> ResultSet
 delItem uid = cats.each.items %~ filter (\i -> _uid i /= uid)
 
 -- | update the _first_ item with the same uid
--- | FIXME fail and/or warn if two items have same uid
+-- | @FIXME fail and/or warn if two items have same uid
 modItem :: Item -> ResultSet -> ResultSet
 modItem it = cats.each . items.singular each. filtered (\i -> _uid i == _uid it) %~ (it ??)
 

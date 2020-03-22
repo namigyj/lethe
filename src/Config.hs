@@ -6,8 +6,6 @@ import Control.Monad.Trans.Except
 import Control.Monad.Trans.Class
 import Data.Text (Text, breakOn, drop, strip, lines, unpack, intercalate)
 import Data.Text.IO (readFile)
-import Lens.Micro
-import Lens.Micro.Internal (Each(..))
 import Lens.Micro.TH (makeLenses)
 import Prelude hiding (drop, readFile, lines)
 import System.Directory (getXdgDirectory, XdgDirectory(..))

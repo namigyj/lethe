@@ -1,8 +1,0 @@
-resolver: lts-14.20
-packages:
-- .
-extra-deps:
-- git: git@github.com:ngyj/ftp-client
-  commit: 79fea70ceac8528c288a80e85e8749ebba7b6baa
-  subdirs:
-    - ftp-client
